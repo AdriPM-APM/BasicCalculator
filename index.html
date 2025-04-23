@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Math Calculator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(to bottom left, #9333ea, #f472b6); /* Tailwind's from-purple-400 to-pink-300 */
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+            margin: 0; /* Reset default body margin */
+        }
+
+        .calculadora {
+            background-color: #fff;
+            border-radius: 1rem; /* Tailwind's rounded-lg */
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05); /* Tailwind's shadow-xl approximation */
+            padding: 2rem;
+            width: 100%;
+            max-width: 400px; /* Tailwind's max-w-md */
+            display: flex;
+            flex-direction: column;
+            margin-top: 2rem; /* Add margin to the top */
+            transition: transform 0.3s;
+        }
+
+        .calculadora:hover {
+            transform: scale(1.02);
+        }
+
+        .pantalla {
+            text-align: right;
+            padding: 1rem;
+            font-size: 2rem; /* Tailwind's text-3xl */
+            border: 1px solid #e0e0e0; /* Tailwind's border-gray-200 */
+            border-radius: 0.5rem; /* Tailwind's rounded-md */
+            margin-bottom: 1rem; /* Tailwind's mb-4 */
+            background-color: #f7fafc; /* Tailwind's bg-gray-100 */
+            overflow: hidden;
+            word-wrap: break-word;
+            min-height: 3rem;
+        }
+
+        .botones {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.5rem; /* Tailwind's gap-2 */
+        }
+        .boton {
+            padding: 1rem;
+            font-size: 1.5rem; /* Tailwind's text-2xl */
+            border: 1px solid #e0e0e0; /* Tailwind's border-gray-200 */
+            border-radius: 0.5rem; /* Tailwind's rounded-md */
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s;
+            background-color: #f9f9f9; /* Tailwind's bg-gray-50 */
+            color: #4a5568; /* Tailwind's text-gray-700 */
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .boton:hover {
+            background-color: #edf2f7; /* Tailwind's bg-gray-200 */
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1); /* Tailwind's shadow-sm approximation */
+            transform: scale(1.05);
+        }
+
+        .numero, .decimal {
+            background-color: #ffffff;
+        }
+        .numero:hover, .decimal:hover {
+            background-color: #f0f0f0;
+        }
+
+        .operador {
+            background-color: #ffe082; /* Amber 100 */
+        }
+
+        .operador:hover {
+            background-color: #ffd54f; /* Amber 200 */
+        }
+        .igual {
+            background-color: #66bb6a; /* Green 300 */
+        }
+        .igual:hover {
+            background-color: #4caf50; /* Green 400 */
+        }
+
+        .clear {
+            background-color: #e57373; /* Red 400 */
+        }
+
+        .clear:hover {
+            background-color: #d32f2f; /* Red 600 */
+        }
+
+        #cero {
+            grid-column: span 2;
+        }
+        .funcion {
+            background-color: #b0bec5;
+        }
+        .funcion:hover {
+            background-color: #90a4ae;
+        }
+
+        .resultado {
+            text-align: center;
+            padding: 1rem;
+            font-size: 1.25rem; /* Tailwind's text-xl */
+            color: #1a202c; /* Tailwind's text-gray-900 */
+        }
+    </style>
+    <script>
+        let pantalla = "0";
+        let operando1 = null;
+        let operador = null;
+        let esperandoOperando2 = false;
+        let historial = [];
+
+        function agregarNumero(numero) {
+            if (esperandoOperando2) {
+                pantalla = numero;
+                esperandoOperando2 = false;
+            } else {
+                pantalla = pantalla === "0" ? numero : pantalla + numero;
+            }
+            actualizarPantalla();
+        }
+
+        function agregarDecimal() {
+            if (!pantalla.includes(".")) {
+                pantalla += ".";
+            }
+            actualizarPantalla();
+        }
+
+        function limpiarPantalla() {
+            pantalla = "0";
+            operando1 = null;
+            operador = null;
+            esperandoOperando2 = false;
+            actualizarPantalla();
+        }
+
+        function borrarUltimo() {
+            pantalla = pantalla.length > 1 ? pantalla.slice(0, -1) : "0";
+            actualizarPantalla();
+        }
+
+        function establecerOperacion(op) {
+            if (['raizCuadrada', 'logaritmo', 'porcentaje', 'cambioSigno'].includes(op)) {
+                const a = parseFloat(pantalla);
+                const resultado = calcular(a, null, op);
+                pantalla = String(resultado);
+                historial.push(op === 'raizCuadrada' ? `√${a} = ${resultado}` :
+                               op === 'logaritmo' ? `log(${a}) = ${resultado}` :
+                               op === 'porcentaje' ? `${a}% = ${resultado}` :
+                               `-${a} = ${resultado}`);
+                actualizarPantalla();
+                operando1 = null;
+                operador = null;
+            } else {
+                if (operador !== null && esperandoOperando2) {
+                    operador = op;
+                    return;
+                }
+                if (operando1 === null) {
+                    operando1 = parseFloat(pantalla);
+                } else if (operador) {
+                    const resultado = calcular(operando1, parseFloat(pantalla), operador);
+                    pantalla = String(resultado);
+                    operando1 = resultado;
+                    historial.push(`${operando1} ${operador} ${parseFloat(pantalla)} = ${resultado}`);
+                }
+                esperandoOperando2 = true;
+                operador = op;
+                actualizarPantalla();
+            }
+        }
+
+        function calcularResultado() {
+            if (operador === null || esperandoOperando2) return;
+
+            const operando2 = parseFloat(pantalla);
+            const resultado = calcular(operando1, operando2, operador);
+            pantalla = String(resultado);
+            historial.push(`${operando1} ${operador} ${operando2} = ${resultado}`);
+            operando1 = null;
+            operador = null;
+            esperandoOperando2 = false;
+            actualizarPantalla();
+        }
+
+        function calcular(a, b, op) {
+            switch (op) {
+                case "+": return a + b;
+                case "-": return a - b;
+                case "*": return a * b;
+                case "/": return b !== 0 ? a / b : "Error: División por cero";
+                case "potencia": return a ** b;
+                case "raizCuadrada":
+                    return a >= 0 ? Math.sqrt(a) : "Error: Raíz negativa";
+                case "logaritmo":
+                    if (a <= 0) return "Error: Log de número ≤ 0";
+                    return Math.log10(a);
+                case "porcentaje": return a / 100;
+                case "cambioSigno": return -a;
+                default: return a;
+            }
+        }
+
+        function actualizarPantalla() {
+            document.getElementById("pantalla").textContent = pantalla;
+        }
+
+        function mostrarHistorial() {
+            const historyDiv = document.getElementById("resultado");
+            historyDiv.innerHTML =
+                historial.length > 0
+                    ? "<strong>History:</strong><br>" + historial.join("<br>")
+                    : "No recent operations";
+        }
+    </script>
+</head>
+<body>
+    <div class="calculadora">
+        <div id="pantalla" class="pantalla">0</div>
+        <div class="botones">
+            <button class="boton clear" onclick="limpiarPantalla()">C</button>
+            <button class="boton" onclick="borrarUltimo()">←</button>
+            <button class="boton funcion" onclick="establecerOperacion('raizCuadrada')">√</button>
+            <button class="boton operador" onclick="establecerOperacion('/')">÷</button>
+            <button class="boton numero" onclick="agregarNumero('7')">7</button>
+            <button class="boton numero" onclick="agregarNumero('8')">8</button>
+            <button class="boton numero" onclick="agregarNumero('9')">9</button>
+            <button class="boton operador" onclick="establecerOperacion('*')">×</button>
+            <button class="boton numero" onclick="agregarNumero('4')">4</button>
+            <button class="boton numero" onclick="agregarNumero('5')">5</button>
+            <button class="boton numero" onclick="agregarNumero('6') ">6</button>
+            <button class="boton operador" onclick="establecerOperacion('-')">-</button>
+            <button class="boton numero" onclick="agregarNumero('1')">1</button>
+            <button class="boton numero" onclick="agregarNumero('2')">2</button>
+            <button class="boton numero" onclick="agregarNumero('3')">3</button>
+            <button class="boton operador" onclick="establecerOperacion('+')">+</button>
+            <button class="boton numero" id="cero" onclick="agregarNumero('0')">0</button>
+            <button class="boton decimal" onclick="agregarDecimal()">.</button>
+             <button class="boton funcion" onclick="establecerOperacion('porcentaje')">%</button>
+            <button class="boton funcion" onclick="establecerOperacion('cambioSigno')">±</button>
+            <button class="boton igual" onclick="calcularResultado()">=</button>
+            <button class="boton funcion" onclick="establecerOperacion('logaritmo')">log</button>
+        </div>
+        <div id="resultado" class="resultado"></div>
+    </div>
+</body>
+</html>
