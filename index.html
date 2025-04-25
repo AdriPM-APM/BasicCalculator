@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Basic Math Calculator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(to bottom left, #9333ea, #f472b6);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+            margin: 0;
+        }
+
+        .calculadora {
+            background-color: #fff;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            padding: 2rem;
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            margin-top: 2rem;
+            transition: transform 0.3s;
+        }
+
+        .calculadora:hover {
+            transform: scale(1.02);
+        }
+
+        .pantalla {
+            text-align: right;
+            padding: 1rem;
+            font-size: 2rem;
+            border: 1px solid #e0e0e0;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            background-color: #f7fafc;
+            overflow: hidden;
+            word-wrap: break-word;
+            min-height: 3rem;
+        }
+
+        .botones {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.5rem;
+        }
+        .boton {
+            padding: 1rem;
+            font-size: 1.5rem;
+            border: 1px solid #e0e0e0;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s;
+            background-color: #f9f9f9;
+            color: #4a5568;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .boton:hover {
+            background-color: #edf2f7;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+            transform: scale(1.05);
+        }
+
+        .numero, .decimal {
+            background-color: #ffffff;
+        }
+        .numero:hover, .decimal:hover {
+            background-color: #f0f0f0;
+        }
+
+        .operador {
+            background-color: #ffe082;
+        }
+
+        .operador:hover {
+            background-color: #ffd54f;
+        }
+        .igual {
+            background-color: #66bb6a;
+        }
+        .igual:hover {
+            background-color: #4caf50;
+        }
+
+        .clear {
+            background-color: #e57373;
+        }
+
+        .clear:hover {
+            background-color: #d32f2f;
+        }
+
+        #cero {
+            grid-column: span 2;
+        }
+        .funcion {
+            background-color: #b0bec5;
+        }
+        .funcion:hover {
+            background-color: #90a4ae;
+        }
+
+        .resultado {
+            text-align: center;
+            padding: 1rem;
+            font-size: 1.25rem;
+            color: #1a202c;
+        }
+    </style>
+    <script>
+        let pantalla = "0";
+        let operando1 = null;
+        let operador = null;
+        let esperandoOperando2 = false;
+        let historial = [];
+
+        function agregarNumero(numero) {
+            if (esperandoOperando2) {
+                pantalla = numero;
+                esperandoOperando2 = false;
+            } else {
+                pantalla = pantalla === "0" ? numero : pantalla + numero;
+            }
+            actualizarPantalla();
+        }
+
+        function agregarDecimal() {
+            if (!pantalla.includes(".")) {
+                pantalla += ".";
+            }
+            actualizarPantalla();
+        }
+
+        function limpiarPantalla() {
+            pantalla = "0";
+            operando1 = null;
+            operador = null;
+            esperandoOperando2 = false;
+            actualizarPantalla();
+        }
+
+        function borrarUltimo() {
+            pantalla = pantalla.length > 1 ? pantalla.slice(0, -1) : "0";
+            actualizarPantalla();
+        }
+
+        function establecerOperacion(op) {
+            if (operador !== null && esperandoOperando2) {
+                operador = op;
+                return;
+            }
+            if (operando1 === null) {
+                operando1 = parseFloat(pantalla);
+            } else if (operador) {
+                const resultado = calcular(operando1, parseFloat(pantalla), operador);
+                operando1 = resultado;
+                pantalla = String(resultado);
+                historial.push(`${operando1} ${operador} ${parseFloat(pantalla)} = ${resultado}`);
+            }
+            esperandoOperando2 = true;
+            operador = op;
+            actualizarPantalla();
+        }
+
+        function calcularResultado() {
+            if (operador === null || esperandoOperando2) return;
+
+            const operando2 = parseFloat(pantalla);
+            const resultado = calcular(operando1, operando2, operador);
+            pantalla = String(resultado);
+            historial.push(`${operando1} ${operador} ${operando2} = ${resultado}`);
+            operando1 = null;
+            operador = null;
+            esperandoOperando2 = false;
+            actualizarPantalla();
+        }
+
+        function calcular(a, b, op) {
+            switch (op) {
+                case "+": return a + b;
+                case "-": return a - b;
+                case "*": return a * b;
+                case "/": return b !== 0 ? a / b : "Error: División por cero";
+                default: return a;
+            }
+        }
+
+        function cambioSigno() {
+            pantalla = String(parseFloat(pantalla) * -1);
+            actualizarPantalla();
+        }
+
+        function actualizarPantalla() {
+            document.getElementById("pantalla").textContent = pantalla;
+        }
+    </script>
+</head>
+<body>
+    <div class="calculadora">
+        <div id="pantalla" class="pantalla">0</div>
+        <div class="botones">
+            <button class="boton clear" onclick="limpiarPantalla()">C</button>
+            <button class="boton" onclick="borrarUltimo()">←</button>
+            <button class="boton funcion" onclick="cambioSigno()">±</button>
+            <button class="boton operador" onclick="establecerOperacion('/')">÷</button>
+            <button class="boton numero" onclick="agregarNumero('7')">7</button>
+            <button class="boton numero" onclick="agregarNumero('8')">8</button>
+            <button class="boton numero" onclick="agregarNumero('9')">9</button>
+            <button class="boton operador" onclick="establecerOperacion('*')">×</button>
+            <button class="boton numero" onclick="agregarNumero('4')">4</button>
+            <button class="boton numero" onclick="agregarNumero('5')">5</button>
+            <button class="boton numero" onclick="agregarNumero('6')">6</button>
+            <button class="boton operador" onclick="establecerOperacion('-')">-</button>
+            <button class="boton numero" onclick="agregarNumero('1')">1</button>
+            <button class="boton numero" onclick="agregarNumero('2')">2</button>
+            <button class="boton numero" onclick="agregarNumero('3')">3</button>
+            <button class="boton operador" onclick="establecerOperacion('+')">+</button>
+            <button class="boton numero" id="cero" onclick="agregarNumero('0')">0</button>
+            <button class="boton decimal" onclick="agregarDecimal()">.</button>
+            <button class="boton igual" onclick="calcularResultado()">=</button>
+        </div>
+    </div>
+</body>
+</html>
