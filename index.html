@@ -187,6 +187,18 @@
             actualizarPantalla();
         }
 
+        function calcularRaizCuadrada() {
+            const numero = parseFloat(pantalla);
+            if (numero < 0) {
+                pantalla = "Error"; // Evitar raíces cuadradas de números negativos
+            } else {
+                const resultado = Math.sqrt(numero);
+                pantalla = String(resultado);
+                historial.push(`√${numero} = ${resultado}`);
+            }
+            actualizarPantalla();
+        }
+
         function calcular(a, b, op) {
             switch (op) {
                 case "+": return a + b;
@@ -214,6 +226,7 @@
             <button class="boton clear" onclick="limpiarPantalla()">C</button>
             <button class="boton" onclick="borrarUltimo()">←</button>
             <button class="boton funcion" onclick="cambioSigno()">±</button>
+            <button class="boton funcion" onclick="calcularRaizCuadrada()">√</button>
             <button class="boton operador" onclick="establecerOperacion('/')">÷</button>
             <button class="boton numero" onclick="agregarNumero('7')">7</button>
             <button class="boton numero" onclick="agregarNumero('8')">8</button>
